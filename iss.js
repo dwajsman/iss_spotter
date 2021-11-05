@@ -9,6 +9,33 @@ const http = require('http');
  *   - An error, if any (nullable)
  *   - The IP address as a string (null if error). Example: "162.245.144.188"
  */
+
+const mainISS = function(callback) {
+
+  fetchMyIP((error, ip) => {
+    if (error) {
+      return callback(error, null);
+    }
+
+    // Hell-level 2
+    fetchCoordsByIP(ip, (error, coordinates) => {
+      if (error) {
+        return callback(error, null);
+      }
+    
+      // Hell-level 3
+      fetchISSFlyOverTimes(coordinates, (error, passTimes) => {
+        if (error) {
+          return callback(error, null);
+        }
+
+        callback(null, passTimes);
+
+      }); // end of fetchISSFlyOverTimes - level 3
+    }); // end of fetchCoordsByIP - level 2
+  });// end of fetchMyIP - level 1
+}; // end of mainISS
+
 const fetchMyIP = function (callback) {
   let apiUrl = "https://api64.ipify.org?format=json";
 
@@ -30,6 +57,7 @@ const fetchMyIP = function (callback) {
     // console.log();
 
     callback(null, data["ip"]);
+    
 
   });
 
@@ -74,7 +102,7 @@ const fetchISSFlyOverTimes = function (latLong, callback) {
   let lat = latLong.latitude;
   let lon = latLong.longitude;
   let url = "https://iss-pass.herokuapp.com/json/?lat=" + lat + "&lon=" + lon;
-  console.log(url);
+  //console.log(url);
   request(url, (error, response, body) => {
 
     const data = JSON.parse(body);
@@ -86,42 +114,9 @@ const fetchISSFlyOverTimes = function (latLong, callback) {
 
 };
 
-
-
-
-// module.exports = { fetchMyIP };
-// module.exports = { fetchCoordsByIP };
 module.exports = {
   fetchMyIP,
   fetchCoordsByIP,
-  fetchISSFlyOverTimes
+  fetchISSFlyOverTimes,
+  mainISS
 };
-
-
-
-// {
-//   "message": "success",
-//   "request": {
-//     "datetime": 1636112267,
-//     "latitude": -22.9485,
-//     "longitude": -43.3436,
-//     "altitude": 1,
-//     "number": 5
-//   },
-//   "response": [{
-//     "risetime": 1636229063,
-//     "duration": 352
-//   }, {
-//     "risetime": 1636265463,
-//     "duration": 292
-//   }, {
-//     "risetime": 1636301863,
-//     "duration": 600
-//   }, {
-//     "risetime": 1636338263,
-//     "duration": 574
-//   }, {
-//     "risetime": 1636374663,
-//     "duration": 297
-//   }]
-// }
